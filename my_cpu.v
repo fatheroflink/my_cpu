@@ -35,10 +35,12 @@ key_converter u_key_converter(
 /**
 	时钟与复位信号定义
 */
+wire original_clock;		//最初的时钟信号
 wire clock;		//测试用时钟，非晶振产生
 wire reset;		//测试用复位
 wire reset_n;
-assign clock = ~key1;
+//assign clock = ~key1;
+assign original_clock = ~key1;
 assign reset = ~key0;
 assign reset_n = ~reset;
 
@@ -76,6 +78,21 @@ wire[`WORDSIZE - 1 : 0] alu_out;		//ALU的输出
 wire[`WORDSIZE - 1 :0] pc_out;
 wire[`WORDSIZE - 1 :0] adder_out;
 wire pc_c_out;
+
+/**
+	HALT信号相关变量
+*/
+wire halt;
+wire comparator_out;
+
+and u_and_halt(clock, halt, original_clock);
+comparator u_comparator(
+	.a(4),
+	.b(pc_out),
+	.y(comparator_out)
+);
+
+not u_not_halt(halt, comparator_out);
 
 assign led[1:0] = addr;
 assign led[3:2] = pc_out;
@@ -176,7 +193,7 @@ alu u_alu(
 
 d_ff_en u_acc(
 	.d(alu_out),
-	.clk(~key1),
+	.clk(clock),
 	.clr(~key0),
 	.en(1),
 	.q(alu_a)
