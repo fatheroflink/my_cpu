@@ -70,9 +70,15 @@ reg ram_clock;
 wire[`WORDSIZE - 1 : 0] alu_a;		//ALU的输入a
 wire[`WORDSIZE - 1 : 0] alu_out;		//ALU的输出
 
+/**
+	程序计数器相关变量
+*/
+wire[`WORDSIZE - 1 :0] pc_out;
+wire[`WORDSIZE - 1 :0] adder_out;
+wire pc_c_out;
 
 assign led[1:0] = addr;
-assign led[3:2] = counter;
+assign led[3:2] = pc_out;
 
 assign led_out[7:0] = init_data_in;
 assign led_out[15:8] = result;
@@ -88,7 +94,7 @@ always@(*)
 			end
 		else
 			begin
-				addr = {~key2, ~key3};
+				addr = pc_out;
 				ram_clock = clock;
 			end
 	end
@@ -177,6 +183,24 @@ d_ff_en u_acc(
 );
 
 
+
+adder u_adder(
+	.a(pc_out),
+	.b(1),
+	.is_minus(0),
+	.s(adder_out),
+	.c_out(pc_c_out)
+);
+/**
+	程序计数器
+*/
+d_ff_en u_pc(
+	.d(adder_out),
+	.clk(clock),
+	.clr(reset),
+	.en(1),
+	.q(pc_out)
+);
 
 
 
